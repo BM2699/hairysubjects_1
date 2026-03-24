@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pair 2</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      cursor: default;
+      position: relative;
+    }
+
+    .left {
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .left img {
+      height: 100%;
+      width: auto;
+      display: block;
+    }
+
+    .right {
+      flex: 1;
+      height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .right img.active {
+      opacity: 1;
+    }
+
+
+    #comments {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      pointer-events: none;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .comment {
+      color: white;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      max-width: 500px;
+      margin-top: 8px;
+    }
+
+    .comment .author {
+      font-style: italic;
+      opacity: 0.7;
+      font-size: 11px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .info-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: absolute;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../home/">←</a>
+  <div class="info-btn">ⓘ</div>
+  <div class="info-box">Self-Portrait with Cropped Hair, 1940, Frida Kahlo (right)
+Rapunzel, Rapunzel Let Down Your Hair (In Vegas), 2026, Taryn Segal (left)</div>
+
+  <div class="left">
+    <img src="assets/frida_selfportraitwithcroppedhair.jpg" alt="Frida Kahlo - Self Portrait with Cropped Hair">
+  </div>
+
+  <div class="right" id="carousel"></div>
+
+  <div id="comments"></div>
+
+
+  <audio id="audio" loop>
+    <source src="assets/pair2_audio.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // start audio on first click anywhere
+    const audio = document.getElementById('audio');
+    document.addEventListener('click', function startAudio() {
+      audio.play();
+      document.removeEventListener('click', startAudio);
+    });
+
+    const carousel = document.getElementById('carousel');
+    carousel.addEventListener('click', () => {
+      window.open('https://www.youtube.com/watch?v=6_u4L8kJy68&list=RD6_u4L8kJy68&start_radio=1', '_blank');
+    });
+    const mpImages = [];
+
+    for (let i = 1; i <= 22; i++) {
+      const ext = (i === 21) ? 'png' : 'webp';
+      const img = document.createElement('img');
+      img.src = 'assets/mp/mp' + i + '.' + ext;
+      img.alt = 'mp' + i;
+      img.draggable = false;
+      carousel.appendChild(img);
+      mpImages.push(img);
+    }
+
+    let current = 0;
+    mpImages[0].classList.add('active');
+
+    setInterval(() => {
+      mpImages[current].classList.remove('active');
+      current = (current + 1) % mpImages.length;
+      mpImages[current].classList.add('active');
+    }, 3000);
+
+    // load and display reddit comments
+    function extractComments(data) {
+      const comments = [];
+      const listings = Array.isArray(data) ? data : [data];
+      listings.forEach(listing => {
+        if (listing.kind !== 'Listing') return;
+        (listing.data.children || []).forEach(child => {
+          if (child.kind === 't1' && child.data.body && child.data.body !== '[deleted]') {
+            comments.push({ author: child.data.author, body: child.data.body });
+            if (child.data.replies && child.data.replies.kind === 'Listing') {
+              extractComments([child.data.replies]).forEach(c => comments.push(c));
+            }
+          } else if (child.kind === 't3' && child.data.selftext) {
+            comments.push({ author: child.data.author, body: child.data.selftext });
+          }
+        });
+      });
+      return comments;
+    }
+
+    fetch('get_the_bangs_girlies.json')
+      .then(r => r.json())
+      .then(data => {
+        const comments = extractComments(data);
+        const container = document.getElementById('comments');
+        const MAX_VISIBLE = 4;
+
+        function runCycle() {
+          container.innerHTML = '';
+          let i = 0;
+          const interval = setInterval(() => {
+            if (i >= comments.length) {
+              clearInterval(interval);
+              setTimeout(() => {
+                container.innerHTML = '';
+                setTimeout(runCycle, 3000);
+              }, 3000);
+              return;
+            }
+            const div = document.createElement('div');
+            div.className = 'comment';
+            div.innerHTML = '<span class="author">u/' + comments[i].author + '</span><br>' +
+              comments[i].body.replace(/\n/g, '<br>');
+            container.appendChild(div);
+            i++;
+          }, 4000);
+        }
+
+        runCycle();
+      })
+      .catch(() => {});
+
+  </script>
+
+</body>
+</html>

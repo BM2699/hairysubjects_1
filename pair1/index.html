@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pair 1</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: url('assets/pair1_bg.jpg') center/cover no-repeat fixed;
+      cursor: default;
+      position: relative;
+    }
+
+    .draggable {
+      position: absolute;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .draggable:active {
+      cursor: grabbing;
+    }
+
+    .painting {
+      box-shadow: 2px 3px 12px rgba(0,0,0,0.25);
+    }
+
+    .painting img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .paper-texture img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #text-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 80px 40px 40px 40px;
+      color: #5cfaa6;
+      font-family: 'Minion Pro', serif;
+      font-size: 30px;
+      line-height: 1.5;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+      pointer-events: none;
+      white-space: pre-wrap;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .info-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: absolute;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../home/">←</a>
+  <div class="info-btn">ⓘ</div>
+  <div class="info-box">Juice, 2003. Mixed media on canvas. 72 × 84 inches. Private Collection. © Mark Bradford. Photo: Charles White
+
+On a clear day, I can usually see all the way to Watts, 2001. Mixed media on canvas. 72 × 84 inches. The Bluff Collection. © Mark Bradford
+
+Mark Bradford, The Some of Its Parts, 2004, billboard paper, photomechanical reproductions, acrylic gel medium, curlpapers, acrylic paint, additional mixed media on canvas, 60 x 70″.</div>
+
+  <div id="text-content"></div>
+
+  <audio id="audio" loop>
+    <source src="assets/pair1_audio.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // start audio on first click anywhere
+    const audio = document.getElementById('audio');
+    document.addEventListener('click', function startAudio() {
+      audio.play();
+      document.removeEventListener('click', startAudio);
+    });
+    const paintings = [
+      { src: 'assets/markbradford_thesomeofitsparts.webp', w: 506 },
+      { src: 'assets/markbradford_juice.jpg', w: 444 },
+      { src: 'assets/markbradford_onaclearday.jpg', w: 475 },
+    ];
+
+    const textureSrcs = ['assets/1.png', 'assets/2.png', 'assets/3.png', 'assets/4.png', 'assets/5.png'];
+    const NUM_TEXTURES = 100;
+
+    function randBetween(a, b) {
+      return Math.random() * (b - a) + a;
+    }
+
+    // create paintings scattered around the center area
+    paintings.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'draggable painting';
+      const img = document.createElement('img');
+      img.src = p.src;
+      img.draggable = false;
+      div.appendChild(img);
+      div.style.width = p.w + 'px';
+      // scatter around center
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      div.style.left = (cx - p.w / 2 + randBetween(-180, 180)) + 'px';
+      div.style.top = (cy - 120 + randBetween(-100, 100)) + 'px';
+      div.style.transform = 'rotate(' + randBetween(-8, 8) + 'deg)';
+      div.style.zIndex = 10 + i;
+      document.body.appendChild(div);
+    });
+
+    // create paper texture overlays
+    for (let i = 0; i < NUM_TEXTURES; i++) {
+      const div = document.createElement('div');
+      div.className = 'draggable paper-texture';
+      const img = document.createElement('img');
+      img.src = textureSrcs[i % textureSrcs.length];
+      img.draggable = false;
+      div.appendChild(img);
+      const size = randBetween(60, 70);
+      div.style.width = size + 'px';
+      div.style.left = randBetween(0, window.innerWidth - size) + 'px';
+      div.style.top = randBetween(0, window.innerHeight - size) + 'px';
+      div.style.transform = 'rotate(' + randBetween(-30, 30) + 'deg)';
+      div.style.zIndex = 100 + i;
+      document.body.appendChild(div);
+    }
+
+    // drag logic
+    let dragEl = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let topZ = 200;
+
+    document.addEventListener('pointerdown', (e) => {
+      const el = e.target.closest('.draggable');
+      if (!el) return;
+      dragEl = el;
+      const rect = el.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      dragEl.style.zIndex = ++topZ;
+      dragEl.setPointerCapture(e.pointerId);
+    });
+
+    document.addEventListener('pointermove', (e) => {
+      if (!dragEl) return;
+      dragEl.style.left = (e.clientX - offsetX) + 'px';
+      dragEl.style.top = (e.clientY - offsetY) + 'px';
+    });
+
+    document.addEventListener('pointerup', () => {
+      dragEl = null;
+    });
+
+    // load text content (everything before "Juice")
+    fetch('content.txt')
+      .then(r => r.ok ? r.text() : '')
+      .then(t => {
+        const idx = t.indexOf('Juice');
+        let text = idx !== -1 ? t.substring(0, idx).trim() : t;
+        // escape HTML then highlight words
+        text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        text = text.replace(/\n/g, '<br>');
+        const highlight = '<span style="color:black;text-shadow:1px 1px 4px #5cfaa6">$&</span>';
+        text = text.replace(/\bsalon\b/gi, highlight);
+        const endPaperLink = '<a href="https://www.sallybeauty.com/hair-care/shop-by-product/textured-and-curly-hair-care/perms-and-straighteners/perm-rods-and-professional-perming-supplies/truwave-jumbo-end-paper/SBS-580060.html?gad_source=1&gad_campaignid=20713049218&gbraid=0AAAAADFdChj2kz4cjLQujesuJcgIUpIIG&gclid=EAIaIQobChMIms6T7KW3kwMVmElHAR0riSS0EAQYASABEgJb5vD_BwE" target="_blank" style="color:black;text-shadow:1px 1px 4px #5cfaa6;text-decoration:none;pointer-events:auto">$&</a>';
+        text = text.replace(/\bend papers?\b/gi, endPaperLink);
+        document.getElementById('text-content').innerHTML = text;
+      })
+      .catch(() => {});
+  </script>
+
+</body>
+</html>

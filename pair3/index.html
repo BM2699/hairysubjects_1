@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pair 3</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: url('assets/pair3_bg.jpg') center/cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+    }
+
+    #slideshow {
+      position: relative;
+      max-width: 70%;
+      max-height: 80%;
+    }
+
+    #slideshow img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      display: none;
+    }
+
+    #slideshow img.active {
+      display: block;
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .info-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: absolute;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../home/">←</a>
+  <div class="info-btn">ⓘ</div>
+  <div class="info-box">Don't forget, don't forget, 2026, Vivian's hair, cardboard boxes, elastics, Vivian Tran</div>
+
+  <div id="slideshow"></div>
+
+
+  <audio id="audio1" loop>
+    <source src="assets/pair3_audio.m4a" type="audio/mp4">
+  </audio>
+
+  <audio id="audio2" loop>
+    <source src="assets/pair3_audio2.m4a" type="audio/mp4">
+  </audio>
+
+  <script>
+    // start both audio tracks on first click
+    const audio1 = document.getElementById('audio1');
+    const audio2 = document.getElementById('audio2');
+    audio1.volume = 0.1;
+    audio2.volume = 1.0;
+    document.addEventListener('click', function startAudio() {
+      audio1.play();
+      audio2.play();
+      document.removeEventListener('click', startAudio);
+    });
+
+    const slideshow = document.getElementById('slideshow');
+    const srcs = [
+      'assets/viviantran_dfdf1.webp',
+      'assets/viviantran_dfdf2.webp',
+      'assets/viviantran_dfdf3.webp',
+      'assets/viviantran_dfdf4.webp',
+    ];
+    const images = [];
+
+    srcs.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.draggable = false;
+      slideshow.appendChild(img);
+      images.push(img);
+    });
+
+    let current = 0;
+    images[0].classList.add('active');
+
+    setInterval(() => {
+      images[current].classList.remove('active');
+      current = (current + 1) % images.length;
+      images[current].classList.add('active');
+    }, 5000);
+
+  </script>
+
+</body>
+</html>
