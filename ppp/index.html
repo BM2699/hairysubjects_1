@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hung Object is a Ghost of Existence</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: white;
+      color: #1a1a1a;
+      font-family: 'Minion Pro', "Iowan Old Style", Palatino, serif;
+      min-height: 100vh;
+    }
+
+    body {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px; left: 20px;
+      width: 60px; height: 60px;
+      font-size: 48px; line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      text-decoration: none;
+    }
+
+    .nav-arrows {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      display: flex; gap: 8px;
+      z-index: 9999;
+    }
+    .nav-arrows a {
+      width: 60px; height: 60px;
+      font-size: 48px; line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-arrows a.disabled {
+      color: #d0d0d0;
+      pointer-events: none;
+      cursor: default;
+    }
+
+    #stage {
+      position: relative;
+      width: 720px;
+      max-width: calc(100vw - 80px);
+      margin: 100px auto 140px auto;
+    }
+
+    .chapter-label {
+      position: absolute;
+      top: 0; left: 0;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      pointer-events: none;
+    }
+
+    .cursor-label {
+      position: fixed;
+      pointer-events: none;
+      color: #5cfaa6;
+      font-family: 'Minion Pro', Palatino, serif;
+      font-style: italic;
+      font-size: 22px;
+      z-index: 10000;
+      white-space: nowrap;
+      display: none;
+    }
+
+    body.cursor-hidden,
+    body.cursor-hidden * {
+      cursor: none !important;
+    }
+
+    .text-line {
+      position: absolute;
+      white-space: pre;
+      pointer-events: none;
+      color: #1a1a1a;
+    }
+
+    .text-line.headline {
+      color: #1a1a1a;
+    }
+
+    .text-line.footnote {
+      color: #555;
+      font-style: italic;
+    }
+
+    .image-obstacle {
+      position: absolute;
+      cursor: grab;
+      will-change: transform;
+      z-index: 10;
+      transition: box-shadow 0.15s ease;
+    }
+
+    .hint-box {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #5cfaa6;
+      color: #1a1a1a;
+      padding: 10px 36px 10px 16px;
+      border-radius: 999px;
+      font-family: 'Minion Pro', Palatino, serif;
+      font-style: italic;
+      font-size: 14px;
+      z-index: 9998;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      user-select: none;
+    }
+
+    .hint-close {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #5cfaa6;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .info-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box,
+    .info-box:hover,
+    .info-box.open {
+      display: block;
+    }
+
+    .info-box a {
+      color: black;
+      text-decoration: none;
+      text-shadow: 1px 1px 4px #5cfaa6;
+    }
+    .image-obstacle.dragging {
+      cursor: grabbing;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    }
+    .image-obstacle img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../home/index.html">←</a>
+
+  <div class="cursor-label" id="cursorLabel"></div>
+
+  <div class="hint-box" id="hintBox">
+    drag the images!
+    <button class="hint-close" id="hintClose" aria-label="dismiss hint">&times;</button>
+  </div>
+
+  <div class="info-btn">&#9432;</div>
+  <div class="info-box">Possibly Probably Perhaps (<a href="https://possiblyprobablyperhaps.com/" target="_blank" rel="noopener">PPP</a>) is an initiator of wearable adaptability currently based in Los Angeles/Shanghai, producing garments, textiles, and images in project base settings.
+
+This is the second project of PPP, a set of wearable beddings made in collaboration with a household textile company. By wrapping the body, the garments are to become an architecture of intimacy.
+
+The writing featured here is the PPP Project 2 manifesto. Please scroll through all 3 chapters to view the project in its entirety.
+
+All products available for purchase <a href="https://possiblyprobablyperhaps.com/project2-intro-page#project2-intro" target="_blank" rel="noopener">here</a>.</div>
+
+  <div id="stage"></div>
+
+  <script src="assets/pretext.js"></script>
+  <script>
+    (async function () {
+      const { prepareWithSegments, layoutNextLine, layoutWithLines } = window.pretextLib;
+
+      const COL_W = 720;
+      const HEADLINE_TOP = 32;
+      const HEADLINE_FONT = '32px "Minion Pro", Palatino, serif';
+      const HEADLINE_LH = 40;
+      const BODY_FONT = '18px "Minion Pro", Palatino, serif';
+      const BODY_LH = 30;
+      const FOOTNOTE_FONT = 'italic 14px "Minion Pro", Palatino, serif';
+      const FOOTNOTE_LH = 22;
+      const HEADLINE_TO_BODY = 30;
+      const BODY_TO_FOOTNOTE = 50;
+      const PARAGRAPH_GAP = 14;
+      const HPAD = 16;
+      const VPAD = 6;
+      const MIN_SLOT_WIDTH = 80;
+
+      const HEADLINE_TEXT = 'Hung Object is a Ghost of Existence';
+
+      const BODY_TEXT = `Have you ever felt a strange kind of presence when encountering an object that is simply hung — hollow, emptied — as if it retained the silhouette of the body it once touched or is about to touch? A wig hung in a shop window, a bedsheet flapping on a balcony, a coat resting limply on a wall hook. These are not merely suspended objects. Rather, they are staged in a way that suggests a body has just departed — or is about to return.
+
+Let us define "hung" not in the narrow sense of being physically suspended, but as a mode of being displayed, presented, or positioned in a way that implies human absence. An unoccupied chair that calls for a body to fulfill its form, an uninhabited room whose owner's traces still could be found. These are objects hung in time — held open by experience, touched by gestures no longer visible.
+
+Maurice Merleau-Ponty describes this condition as a form of negative presence — the body no longer present, but still perceivable through its trace.[1] The hollow of a wig, the dent of a pillow, the fold of a used sheet — these are not just spatial cavities, but impressions carved by absence. They are not simply empty; they are inhabited by the experience that is meant to happen upon them.
+
+The world, as Merleau-Ponty argues, is not composed of discrete things, but of the body's ongoing relation with them. In this view, hung objects are not passive residues of use — they are carriers of unfinished gestures. They hold the motion of being worn, being slept in, being sat upon — even though they are now still. Their stillness is a frame extracted from an image sequence, before which and after which there are movements. The hung objects capture the before and after of action; its tension lies in its incompletion.
+
+This is why these objects are emotionally charged. They refuse to become neutral, static, a pale exhibition of the materiality. The wig remembers its last wearer and invites the next gesture of wearing. The bedsheet echoes past warmth and readies itself for another form to lie within. These objects haunt. Their silence is not empty, but thick with the persistent involvement of embodiment.
+
+What we perceive, then, is not function — but the emotional residue of the body. The weight we feel is not material but perceptual. A presence that emerges precisely through absence — a ghost of existence itself.`;
+
+      const FOOTNOTE_TEXT = `[1]  Merleau-Ponty, Phenomenology of Perception, 1945. More specifically, his idea that perception is not of isolated objects, but of "the world as already structured by bodily engagement."`;
+
+      const stage = document.getElementById('stage');
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chapter-label';
+      labelEl.textContent = 'Chapter 1';
+      stage.appendChild(labelEl);
+
+      const obstacles = [
+        { id: 'ceiling',      src: 'assets/ceiling.jpg',      x: 460, y: 110, w: 220 },
+        { id: 'bedbillboard', src: 'assets/bedbillboard.jpg', x:  40, y: 460, w: 220 },
+        { id: 'wallstain',    src: 'assets/wallstain.webp',   x: 250, y: 620, w: 220 },
+        { id: 'hand',         src: 'assets/hand.png',         x: 440, y: 800, w: 220 },
+        { id: 'desiredpath',  src: 'assets/desiredpath.jpg',  x:  40, y: 950, w: 220 },
+      ];
+
+      obstacles.forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'image-obstacle';
+        div.dataset.id = o.id;
+        div.style.width = o.w + 'px';
+        const img = document.createElement('img');
+        img.src = o.src;
+        img.draggable = false;
+        div.appendChild(img);
+        stage.appendChild(div);
+        o.el = div;
+        o.h = o.w; // placeholder until image loads
+      });
+
+      await document.fonts.ready;
+      await Promise.all(obstacles.map(o => new Promise(resolve => {
+        const img = o.el.querySelector('img');
+        if (img.complete && img.naturalHeight > 0) resolve();
+        else { img.onload = resolve; img.onerror = resolve; }
+      })));
+
+      obstacles.forEach(o => {
+        const img = o.el.querySelector('img');
+        if (img.naturalWidth > 0) o.h = img.naturalHeight * (o.w / img.naturalWidth);
+        o.el.style.left = o.x + 'px';
+        o.el.style.top = o.y + 'px';
+      });
+
+      const preparedHeadline = prepareWithSegments(HEADLINE_TEXT, HEADLINE_FONT);
+      const preparedBodyParas = BODY_TEXT.split(/\n\n+/).map(p => prepareWithSegments(p.trim(), BODY_FONT));
+      const preparedFootnote = prepareWithSegments(FOOTNOTE_TEXT, FOOTNOTE_FONT);
+
+      const linePool = [];
+      function getLine(i, kind, font, lh) {
+        while (linePool.length <= i) {
+          const el = document.createElement('div');
+          stage.appendChild(el);
+          linePool.push(el);
+        }
+        const el = linePool[i];
+        el.className = 'text-line ' + kind;
+        el.style.font = font;
+        el.style.lineHeight = lh + 'px';
+        el.style.display = '';
+        return el;
+      }
+      function hideFrom(i) {
+        for (let j = i; j < linePool.length; j++) linePool[j].style.display = 'none';
+      }
+
+      function carveSlots(base, blocked) {
+        let slots = [base];
+        for (const iv of blocked) {
+          const next = [];
+          for (const s of slots) {
+            if (iv.right <= s.left || iv.left >= s.right) { next.push(s); continue; }
+            if (iv.left > s.left)  next.push({ left: s.left,  right: iv.left });
+            if (iv.right < s.right) next.push({ left: iv.right, right: s.right });
+          }
+          slots = next;
+        }
+        return slots.filter(s => s.right - s.left >= MIN_SLOT_WIDTH);
+      }
+
+      function layoutAll() {
+        let idx = 0;
+
+        // headline (no obstacles)
+        const hl = layoutWithLines(preparedHeadline, COL_W, HEADLINE_LH);
+        let y = HEADLINE_TOP;
+        for (const line of hl.lines) {
+          const el = getLine(idx++, 'headline', HEADLINE_FONT, HEADLINE_LH);
+          el.textContent = line.text;
+          el.style.left = '0px';
+          el.style.top = y + 'px';
+          y += HEADLINE_LH;
+        }
+        const bodyTop = y + HEADLINE_TO_BODY;
+
+        // body with obstacles, one paragraph at a time
+        let lineTop = bodyTop;
+        for (let pi = 0; pi < preparedBodyParas.length; pi++) {
+          const prep = preparedBodyParas[pi];
+          let cursor = { segmentIndex: 0, graphemeIndex: 0 };
+          let exhausted = false;
+          let safety = 400;
+          while (!exhausted && safety-- > 0) {
+            const bandTop = lineTop;
+            const bandBottom = lineTop + BODY_LH;
+            const blocked = [];
+            for (const o of obstacles) {
+              if (bandBottom <= o.y - VPAD) continue;
+              if (bandTop >= o.y + o.h + VPAD) continue;
+              blocked.push({ left: o.x - HPAD, right: o.x + o.w + HPAD });
+            }
+            const slots = carveSlots({ left: 0, right: COL_W }, blocked);
+            if (slots.length === 0) {
+              lineTop += BODY_LH;
+              continue;
+            }
+            slots.sort((a, b) => a.left - b.left);
+            for (const slot of slots) {
+              const slotW = slot.right - slot.left;
+              const line = layoutNextLine(prep, cursor, slotW);
+              if (line === null) { exhausted = true; break; }
+              const el = getLine(idx++, '', BODY_FONT, BODY_LH);
+              el.textContent = line.text;
+              el.style.left = slot.left + 'px';
+              el.style.top = lineTop + 'px';
+              cursor = line.end;
+            }
+            lineTop += BODY_LH;
+          }
+          if (pi < preparedBodyParas.length - 1) lineTop += PARAGRAPH_GAP;
+        }
+        const bodyBottom = lineTop;
+
+        // footnote at bottom (no obstacles)
+        const fnTop = bodyBottom + BODY_TO_FOOTNOTE;
+        let fnCursor = { segmentIndex: 0, graphemeIndex: 0 };
+        let fnY = fnTop;
+        while (true) {
+          const line = layoutNextLine(preparedFootnote, fnCursor, COL_W);
+          if (line === null) break;
+          const el = getLine(idx++, 'footnote', FOOTNOTE_FONT, FOOTNOTE_LH);
+          el.textContent = line.text;
+          el.style.left = '0px';
+          el.style.top = fnY + 'px';
+          fnCursor = line.end;
+          fnY += FOOTNOTE_LH;
+        }
+
+        stage.style.height = (fnY + 40) + 'px';
+        hideFrom(idx);
+      }
+
+      layoutAll();
+
+      // drag interaction
+      let dragging = null;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+      let rafId = null;
+
+      function scheduleLayout() {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          layoutAll();
+        });
+      }
+
+      document.addEventListener('pointerdown', e => {
+        const target = e.target.closest('.image-obstacle');
+        if (!target) return;
+        const obs = obstacles.find(o => o.id === target.dataset.id);
+        if (!obs) return;
+        dragging = obs;
+        const stageRect = stage.getBoundingClientRect();
+        dragOffsetX = e.clientX - (stageRect.left + obs.x);
+        dragOffsetY = e.clientY - (stageRect.top + obs.y);
+        target.classList.add('dragging');
+        try { target.setPointerCapture(e.pointerId); } catch (_) {}
+        e.preventDefault();
+      });
+
+      document.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        const stageRect = stage.getBoundingClientRect();
+        let nx = e.clientX - stageRect.left - dragOffsetX;
+        let ny = e.clientY - stageRect.top - dragOffsetY;
+        // clamp horizontally to text column; clamp vertically only at top
+        nx = Math.max(0, Math.min(COL_W - dragging.w, nx));
+        ny = Math.max(0, ny);
+        dragging.x = nx;
+        dragging.y = ny;
+        dragging.el.style.left = nx + 'px';
+        dragging.el.style.top = ny + 'px';
+        scheduleLayout();
+      });
+
+      function endDrag() {
+        if (!dragging) return;
+        dragging.el.classList.remove('dragging');
+        dragging = null;
+        scheduleLayout();
+      }
+      document.addEventListener('pointerup', endDrag);
+      document.addEventListener('pointercancel', endDrag);
+
+      const hintBox = document.getElementById('hintBox');
+      document.getElementById('hintClose').addEventListener('click', () => hintBox.remove());
+
+      // ---- info icon click-to-pin ----
+      const infoBtn = document.querySelector('.info-btn');
+      const infoBox = document.querySelector('.info-box');
+      if (infoBtn && infoBox) {
+        infoBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          infoBox.classList.toggle('open');
+        });
+        document.addEventListener('click', e => {
+          if (e.target.closest('.info-btn') || e.target.closest('.info-box')) return;
+          infoBox.classList.remove('open');
+        });
+      }
+
+      // ---- side-zone cursor navigation ----
+      const PREV_HREF = null;        // chapter 1 has no prev
+      const NEXT_HREF = 'ch2/index.html';
+      const cursorLabel = document.getElementById('cursorLabel');
+      let currentZone = null;        // 'left' | 'right' | null
+
+      function isReservedTarget(t) {
+        return !!(t && (t.closest('.back-btn') || t.closest('.hint-box') || t.closest('.image-obstacle') || t.closest('.info-btn') || t.closest('.info-box')));
+      }
+
+      document.addEventListener('mousemove', e => {
+        if (dragging || isReservedTarget(e.target)) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          currentZone = null;
+          return;
+        }
+        const w = window.innerWidth;
+        const x = e.clientX;
+        let zone = null;
+        if (x < w / 3) zone = 'left';
+        else if (x > w * 2 / 3) zone = 'right';
+
+        currentZone = zone;
+        if (zone === null) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          return;
+        }
+        cursorLabel.textContent = zone === 'left' ? '<prev>' : '<next>';
+        cursorLabel.style.left = e.clientX + 'px';
+        cursorLabel.style.top = e.clientY + 'px';
+        cursorLabel.style.display = 'block';
+        document.body.classList.add('cursor-hidden');
+      });
+
+      document.addEventListener('mouseleave', () => {
+        cursorLabel.style.display = 'none';
+        document.body.classList.remove('cursor-hidden');
+        currentZone = null;
+      });
+
+      document.addEventListener('click', e => {
+        if (isReservedTarget(e.target)) return;
+        if (currentZone === 'right' && NEXT_HREF) {
+          window.location.href = NEXT_HREF;
+        } else if (currentZone === 'left' && PREV_HREF) {
+          window.location.href = PREV_HREF;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

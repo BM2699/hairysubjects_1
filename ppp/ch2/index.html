@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wearing is a Gesture of Embodiment</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: white;
+      color: #1a1a1a;
+      font-family: 'Minion Pro', "Iowan Old Style", Palatino, serif;
+      min-height: 100vh;
+    }
+    body { user-select: none; -webkit-user-select: none; }
+
+    .back-btn {
+      position: fixed;
+      top: 20px; left: 20px;
+      width: 60px; height: 60px;
+      font-size: 48px; line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      text-decoration: none;
+    }
+
+    .cursor-label {
+      position: fixed;
+      pointer-events: none;
+      color: #5cfaa6;
+      font-family: 'Minion Pro', Palatino, serif;
+      font-style: italic;
+      font-size: 22px;
+      z-index: 10000;
+      white-space: nowrap;
+      display: none;
+    }
+    body.cursor-hidden,
+    body.cursor-hidden * { cursor: none !important; }
+
+    #stage {
+      position: relative;
+      width: 100vw;
+      margin: 0;
+      padding: 60px 24px 24px 24px;
+    }
+
+    .chapter-label {
+      position: absolute;
+      top: 0; left: 0;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      pointer-events: none;
+    }
+
+    .text-line {
+      position: absolute;
+      white-space: pre;
+      pointer-events: none;
+      color: #1a1a1a;
+    }
+
+    .info-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box,
+    .info-box:hover,
+    .info-box.open {
+      display: block;
+    }
+
+    .info-box a {
+      color: black;
+      text-decoration: none;
+      text-shadow: 1px 1px 4px #5cfaa6;
+    }
+
+    .bg-jeans-wrap {
+      position: absolute;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-jeans-wrap img {
+      display: block;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: center center;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../../home/index.html">←</a>
+  <div class="cursor-label" id="cursorLabel"></div>
+
+  <div class="info-btn">&#9432;</div>
+  <div class="info-box">Possibly Probably Perhaps (<a href="https://possiblyprobablyperhaps.com/" target="_blank" rel="noopener">PPP</a>) is an initiator of wearable adaptability currently based in Los Angeles/Shanghai, producing garments, textiles, and images in project base settings.
+
+This is the second project of PPP, a set of wearable beddings made in collaboration with a household textile company. By wrapping the body, the garments are to become an architecture of intimacy.
+
+The writing featured here is the PPP Project 2 manifesto. Please scroll through all 3 chapters to view the project in its entirety.
+
+All products available for purchase <a href="https://possiblyprobablyperhaps.com/project2-intro-page#project2-intro" target="_blank" rel="noopener">here</a>.</div>
+
+  <div id="stage"></div>
+
+  <script src="../assets/pretext.js"></script>
+  <script>
+    (async function () {
+      const { prepareWithSegments, layoutNextLine, layoutWithLines } = window.pretextLib;
+
+      const COL_W = window.innerWidth - 48; // matches #stage padding 24px each side
+      const HEADLINE_TOP = 32;
+      const HEADLINE_FONT = '32px "Minion Pro", Palatino, serif';
+      const HEADLINE_LH = 40;
+      const HEADLINE_TO_BODY = 30;
+
+      const BODY_FONT = '17px "Minion Pro", Palatino, serif';
+      const BODY_LH = 20;
+      const SEC_HEADING_FONT = '600 18px "Minion Pro", Palatino, serif';
+      const SEC_HEADING_LH = 22;
+
+      const PARAGRAPH_GAP = 10;
+      const SEC_HEADING_GAP_BEFORE = 18;
+      const SEC_HEADING_GAP_AFTER = 0;
+
+      const HPAD = 0;
+      const VPAD = 0;
+      const MIN_SLOT_WIDTH = 60;
+
+      const HEADLINE_TEXT = 'Wearing is a Gesture of Embodiment';
+
+      const BLOCKS = [
+        { kind: 'heading', text: '1   The Return to Functionality' },
+        { kind: 'para',    text: 'Absence is a word that inevitably evokes the desire to restore presence. As Merleau-Ponty argued, "We perceive not only what is given, but what is implied by the structure of perception itself." In the context of this work, the structure of perception refers not to a neutral or purely optical act of seeing, but to a temporally layered engagement — shaped by bodily memory, anticipation, and habitual interaction. This perceptual inclination is not a matter of conscious decision, but a tendency — one that draws us toward the act of returning the hung object to what seems missing.' },
+        { kind: 'para',    text: 'Thus, when we encounter a flapping bedsheet or a hollow wig, we do not simply register a material fact. We are drawn into a process of restoration: imagining the sheet returned to a bed, or the wig returned to cover a head. Functionality, in this context, serves as a form of visual closure — a way to visually resolve the disruption caused by absence. Returning the hung object to its functionality becomes an intuitive response by us — one that momentarily patches the sense of absence.' },
+        { kind: 'heading', text: '2   The Perceptual Residue' },
+        { kind: 'para',    text: 'However, once removed from its site of use, the hung object loses its utilitarian clarity. It becomes something else — a perceptual residue: the emotional imprint left by the body. This residue is not abstract. It reveals itself through subtle and tangible signs: the dent left in a pillow, the silhouette of the hollow, the lingering warmth or scent. The body is no longer visible, but the gesture has not settled.' },
+        { kind: 'para',    text: 'The residue marks the collapse of functional return. The act of returning the flapping sheet to the bed may restore the scene, but it is not a perceptual resolution — because what is truly absent is not the bed, but the body that gives weight and form to the hung bedsheet.' },
+        { kind: 'heading', text: '3   The Return to Embodiment' },
+        { kind: 'para',    text: 'In this sense, the true absence we encounter is that of the body — not merely as a physical organism, but as a structuring presence that enacts contact, leaves traces, and gives perceptual weight to the object. It is the body that shaped the residual shape, and only by re-situating the object within this bodily relation can perception become whole again.' },
+        { kind: 'para',    text: 'To respond to this absence, we propose a visual experiment: to return the object not to its function, but to embodiment. Our method is direct and tactile — we invite the body to wear, to touch — to fill the hollow, to complete the gesture.' },
+        { kind: 'para',    text: "The returns that are collected here may appear off-set, even awkward or abstract, because we are not restoring use, but reactivating contact. At the center of this reactivation lies the act of wearing — skin to fabric, hollow to shape — where tension becomes visible, and the body's return takes form, yet not always in completion." },
+      ];
+
+      const stage = document.getElementById('stage');
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chapter-label';
+      labelEl.textContent = 'Chapter 2';
+      stage.appendChild(labelEl);
+
+      await document.fonts.ready;
+
+      // headline
+      const preparedHeadline = prepareWithSegments(HEADLINE_TEXT, HEADLINE_FONT);
+      const hl = layoutWithLines(preparedHeadline, COL_W, HEADLINE_LH);
+      let y = HEADLINE_TOP;
+      for (const line of hl.lines) {
+        const el = createTextLine(line.text, 0, y, HEADLINE_FONT, HEADLINE_LH);
+        stage.appendChild(el);
+        y += HEADLINE_LH;
+      }
+      const bodyTop = y + HEADLINE_TO_BODY;
+
+      // jeans image (rotated 90°), large and centered — obstacle = image (no padding)
+      const IMG_W = Math.min(720, COL_W);
+      const IMG_H = Math.round(IMG_W * 736 / 552);
+      const IMG_X = Math.round((COL_W - IMG_W) / 2);
+      const IMG_Y = bodyTop + 22;
+      const obstacle = { x: IMG_X, y: IMG_Y, w: IMG_W, h: IMG_H };
+
+      const bgWrap = document.createElement('div');
+      bgWrap.className = 'bg-jeans-wrap';
+      bgWrap.style.left = IMG_X + 'px';
+      bgWrap.style.top = IMG_Y + 'px';
+      bgWrap.style.width = IMG_W + 'px';
+      bgWrap.style.height = IMG_H + 'px';
+      const bgImg = document.createElement('img');
+      bgImg.src = 'assets/jeans.jpg';
+      bgImg.alt = '';
+      bgImg.style.width = IMG_H + 'px';
+      bgImg.style.height = IMG_W + 'px';
+      bgWrap.appendChild(bgImg);
+      stage.appendChild(bgWrap);
+
+      function createTextLine(text, x, top, font, lh) {
+        const el = document.createElement('div');
+        el.className = 'text-line';
+        el.style.font = font;
+        el.style.lineHeight = lh + 'px';
+        el.style.left = x + 'px';
+        el.style.top = top + 'px';
+        el.textContent = text;
+        return el;
+      }
+
+      function carveSlots(base, blocked) {
+        let slots = [base];
+        for (const iv of blocked) {
+          const next = [];
+          for (const s of slots) {
+            if (iv.right <= s.left || iv.left >= s.right) { next.push(s); continue; }
+            if (iv.left > s.left)  next.push({ left: s.left,  right: iv.left });
+            if (iv.right < s.right) next.push({ left: iv.right, right: s.right });
+          }
+          slots = next;
+        }
+        return slots.filter(s => s.right - s.left >= MIN_SLOT_WIDTH);
+      }
+
+      // layout each block in sequence, wrapping around obstacle
+      let lineTop = bodyTop;
+      for (let bi = 0; bi < BLOCKS.length; bi++) {
+        const block = BLOCKS[bi];
+        const isHeading = block.kind === 'heading';
+        const font = isHeading ? SEC_HEADING_FONT : BODY_FONT;
+        const lh = isHeading ? SEC_HEADING_LH : BODY_LH;
+
+        if (bi > 0) {
+          if (isHeading) {
+            lineTop += SEC_HEADING_GAP_BEFORE;
+          } else {
+            const prev = BLOCKS[bi - 1];
+            lineTop += prev.kind === 'heading' ? SEC_HEADING_GAP_AFTER : PARAGRAPH_GAP;
+          }
+        }
+
+        const prepared = prepareWithSegments(block.text, font);
+        let cursor = { segmentIndex: 0, graphemeIndex: 0 };
+        let exhausted = false;
+        let safety = 400;
+        while (!exhausted && safety-- > 0) {
+          const bandTop = lineTop;
+          const bandBottom = lineTop + lh;
+          const blocked = [];
+          if (bandBottom > obstacle.y - VPAD && bandTop < obstacle.y + obstacle.h + VPAD) {
+            blocked.push({ left: obstacle.x - HPAD, right: obstacle.x + obstacle.w + HPAD });
+          }
+          const slots = carveSlots({ left: 0, right: COL_W }, blocked);
+          if (slots.length === 0) {
+            lineTop += lh;
+            continue;
+          }
+          slots.sort((a, b) => a.left - b.left);
+          let placedInBand = false;
+          for (const slot of slots) {
+            const slotW = slot.right - slot.left;
+            const line = layoutNextLine(prepared, cursor, slotW);
+            if (line === null) { exhausted = true; break; }
+            placedInBand = true;
+            const el = createTextLine(line.text, slot.left, lineTop, font, lh);
+            stage.appendChild(el);
+            cursor = line.end;
+          }
+          if (placedInBand) lineTop += lh;
+        }
+      }
+
+      const totalBottom = Math.max(lineTop, obstacle.y + obstacle.h);
+      stage.style.height = (totalBottom + 60) + 'px';
+
+      // ---- side-zone cursor navigation ----
+      const PREV_HREF = '../index.html';
+      const NEXT_HREF = '../ch3/index.html';
+      const cursorLabel = document.getElementById('cursorLabel');
+      let currentZone = null;
+
+      function isReservedTarget(t) {
+        return !!(t && (t.closest('.back-btn') || t.closest('.info-btn') || t.closest('.info-box')));
+      }
+
+      // ---- info icon click-to-pin ----
+      const infoBtn = document.querySelector('.info-btn');
+      const infoBox = document.querySelector('.info-box');
+      if (infoBtn && infoBox) {
+        infoBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          infoBox.classList.toggle('open');
+        });
+        document.addEventListener('click', e => {
+          if (e.target.closest('.info-btn') || e.target.closest('.info-box')) return;
+          infoBox.classList.remove('open');
+        });
+      }
+
+      document.addEventListener('mousemove', e => {
+        if (isReservedTarget(e.target)) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          currentZone = null;
+          return;
+        }
+        const w = window.innerWidth;
+        const x = e.clientX;
+        let zone = null;
+        if (x < w / 3) zone = 'left';
+        else if (x > w * 2 / 3) zone = 'right';
+        currentZone = zone;
+        if (zone === null) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          return;
+        }
+        cursorLabel.textContent = zone === 'left' ? '<prev>' : '<next>';
+        cursorLabel.style.left = e.clientX + 'px';
+        cursorLabel.style.top = e.clientY + 'px';
+        cursorLabel.style.display = 'block';
+        document.body.classList.add('cursor-hidden');
+      });
+
+      document.addEventListener('mouseleave', () => {
+        cursorLabel.style.display = 'none';
+        document.body.classList.remove('cursor-hidden');
+        currentZone = null;
+      });
+
+      document.addEventListener('click', e => {
+        if (isReservedTarget(e.target)) return;
+        if (currentZone === 'right' && NEXT_HREF) window.location.href = NEXT_HREF;
+        else if (currentZone === 'left' && PREV_HREF) window.location.href = PREV_HREF;
+      });
+    })();
+  </script>
+</body>
+</html>

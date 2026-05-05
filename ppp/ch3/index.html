@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To wear is to mis-return</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../../fonts/MinionPro-It.otf') format('opentype');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: url('../assets/23196.JPG') center/cover no-repeat fixed;
+      font-family: 'Minion Pro', "Iowan Old Style", Palatino, serif;
+      color: white;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px; left: 20px;
+      width: 60px; height: 60px;
+      font-size: 48px; line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      text-decoration: none;
+    }
+
+    .chapter-label {
+      position: fixed;
+      top: 100px;
+      left: max(40px, calc(50vw - 360px));
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: white;
+      pointer-events: none;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+      z-index: 100;
+    }
+
+    .headline {
+      position: fixed;
+      top: 132px;
+      left: max(40px, calc(50vw - 360px));
+      font-size: 32px;
+      font-weight: normal;
+      color: white;
+      pointer-events: none;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+      z-index: 100;
+    }
+
+    .slideshow {
+      position: fixed;
+      top: 58%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 38vw;
+      max-width: 460px;
+      pointer-events: none;
+    }
+    .slideshow img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .info-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .info-box {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+
+    .info-btn:hover + .info-box,
+    .info-box:hover,
+    .info-box.open {
+      display: block;
+    }
+
+    .info-box a {
+      color: black;
+      text-decoration: none;
+      text-shadow: 1px 1px 4px #5cfaa6;
+    }
+
+    .cursor-label {
+      position: fixed;
+      pointer-events: none;
+      color: #5cfaa6;
+      font-family: 'Minion Pro', Palatino, serif;
+      font-style: italic;
+      font-size: 22px;
+      z-index: 10000;
+      white-space: nowrap;
+      display: none;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+    body.cursor-hidden,
+    body.cursor-hidden * { cursor: none !important; }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../../home/index.html">←</a>
+  <div class="chapter-label">Chapter 3</div>
+  <h1 class="headline">To wear is to mis-return</h1>
+
+  <div class="cursor-label" id="cursorLabel"></div>
+
+  <div class="info-btn">&#9432;</div>
+  <div class="info-box">Possibly Probably Perhaps (<a href="https://possiblyprobablyperhaps.com/" target="_blank" rel="noopener">PPP</a>) is an initiator of wearable adaptability currently based in Los Angeles/Shanghai, producing garments, textiles, and images in project base settings.
+
+This is the second project of PPP, a set of wearable beddings made in collaboration with a household textile company. By wrapping the body, the garments are to become an architecture of intimacy.
+
+The writing featured here is the PPP Project 2 manifesto. Please scroll through all 3 chapters to view the project in its entirety.
+
+All products available for purchase <a href="https://possiblyprobablyperhaps.com/project2-intro-page#project2-intro" target="_blank" rel="noopener">here</a>.</div>
+
+  <div class="slideshow">
+    <img id="slideImg" src="../assets/23204.PNG" alt="">
+  </div>
+
+  <script>
+    (function () {
+      // ---- slideshow (no fade, hard cuts) ----
+      const FRAMES = [
+        '../assets/23204.PNG',
+        '../assets/23205.PNG',
+        '../assets/23206.PNG',
+        '../assets/23207.PNG',
+        '../assets/23208.PNG',
+        '../assets/23210.PNG',
+        '../assets/23212.PNG',
+        '../assets/23214.PNG',
+        '../assets/23217.PNG',
+      ];
+      const FRAME_MS = 1000;
+
+      // preload so swaps are instant
+      FRAMES.forEach(src => { const i = new Image(); i.src = src; });
+
+      const imgEl = document.getElementById('slideImg');
+      let idx = 0;
+      setInterval(() => {
+        idx = (idx + 1) % FRAMES.length;
+        imgEl.src = FRAMES[idx];
+      }, FRAME_MS);
+
+      // ---- download chapter text once per session ----
+      const TEXT = `Chapter 3: To wear is to mis-return
+
+The visual experiment proposed here centers the act of wear. However, to wear is not to fit in; it is not to occupy a form and complete the object that will lead it to the return to functionality. Rather, to wear is to float within - to let the skin open up its sensibilities and tune into a perceptual relation with the residue.
+
+Merleau-Ponty argues that body is not a passive receiver of information, but our general medium for having a world. Skin, in his sense, is not merely a boundary, but a perceptual interface. Through the skin, we perceive not only temperature or pressure, but the gesture of what was once there. "Wearing" is not just one of many ways, such as touching and rubbing, to return the object to embodiment — it is the most intimate, immersive, and perceptually complete one. Because only through wearing does the skin enter fully into contact with the residue of the absent body.
+
+Consider the act of wearing a piece of armor. We must realize that the intention is to seek its protective quality. It is to feel the residue in this piece of armor— how its weight once pressed against another body, how the curve of metal traced a vanished gesture, how the inner lining may still bear the mark of a former wearer. Even if this hung armor has no history — never worn, never marked by a body — it still presents itself as a presence. Its form carries an implicit intention: it already knows how to shield, to protect, before it is worn. In wearing it, we attune ourselves to how it might have shielded, protected— the armor becomes something like a living agent. It communicates through the embodiment we return it to.
+
+In this moment, wearing becomes a gesture of empathetic alignment with the absence. The skin and the fabric—or the skin and metal —meet in the hollow left by a body. From that contact, a strange sense of completion may arise: as if the body has been restored, or that we have, in some way, fulfilled the absence. Yet this sensation is uncanny. What we feel is not what exactly has been—nor what will have been—felt, but what our body generates in order to feel something at all. The sensation emerges from our own perceptual system trying to make sense of absence out of context. And the intimacy comes not from the object's capacity to remember, but from the way it invites us to imagine a touch, a presence, a former life, or a yet-to-come scenario. In this way, to wear is to simulate alignment — yet it never fully coincides with the absent body.
+
+Again as Merleau-Ponty points out, perception is not a recovery of stored content. It emerges, always for the first time, through the living relation between body and world. This means that every attempt to "return"—to re-enact, to re-inhabit, to wear—can never fully succeed. The return to embodiment is always a regeneration of something new, shaped by our current posture, timing, and state of mind.
+
+To return, then, is to mis-return. The gesture may echo the performance of the absent body—but the context, the rhythm, the urgency, is gone. Space may align, but time refuses.
+
+Take the example of wearing armor again. Even if it has never been worn before, it seems to "know" how to protect a body: its curves follow human form; its joints anticipate movement; its weight suggests impact. We might imagine ourselves in battle, feeling its grip and heaviness as a sign of solidarity with those who fought. But we are not in battle. There is no incoming blow. No blood. No fear. We are not protected. Our body is simply wearing the idea of protection.
+
+To wear the armor now is to enter a hollow scenario—one that mimics a scene but lacks its stakes. We approach with care, curiosity, and imagination. But that is precisely the gap: empathetic but not real. The return to embodiment, then, is always partial. Something always escapes.
+
+This failure to align is not a flaw to be corrected. It is precisely in this failure — this misalignment, this hollow attempt — that absence becomes perceivable.
+
+We wear not to recover what is gone, but to enter the tension where absence begins to take form. In failing to return, perception finds its edge — and it is there that absence becomes real.
+`;
+
+      try {
+        const blob = new Blob([TEXT], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'to-wear-is-to-mis-return.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      } catch (err) {
+        console.warn('chapter download failed:', err);
+      }
+
+      // ---- side-zone cursor navigation ----
+      const PREV_HREF = '../ch2/index.html';
+      const NEXT_HREF = null; // chapter 3 is the last
+      const cursorLabel = document.getElementById('cursorLabel');
+      let currentZone = null;
+
+      function isReservedTarget(t) {
+        return !!(t && (t.closest('.back-btn') || t.closest('.info-btn') || t.closest('.info-box')));
+      }
+
+      // ---- info icon click-to-pin ----
+      const infoBtn = document.querySelector('.info-btn');
+      const infoBox = document.querySelector('.info-box');
+      if (infoBtn && infoBox) {
+        infoBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          infoBox.classList.toggle('open');
+        });
+        document.addEventListener('click', e => {
+          if (e.target.closest('.info-btn') || e.target.closest('.info-box')) return;
+          infoBox.classList.remove('open');
+        });
+      }
+
+      document.addEventListener('mousemove', e => {
+        if (isReservedTarget(e.target)) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          currentZone = null;
+          return;
+        }
+        const w = window.innerWidth;
+        const x = e.clientX;
+        let zone = null;
+        if (x < w / 3) zone = 'left';
+        else if (x > w * 2 / 3) zone = 'right';
+        currentZone = zone;
+        if (zone === null) {
+          cursorLabel.style.display = 'none';
+          document.body.classList.remove('cursor-hidden');
+          return;
+        }
+        cursorLabel.textContent = zone === 'left' ? '<prev>' : '<next>';
+        cursorLabel.style.left = e.clientX + 'px';
+        cursorLabel.style.top = e.clientY + 'px';
+        cursorLabel.style.display = 'block';
+        document.body.classList.add('cursor-hidden');
+      });
+
+      document.addEventListener('mouseleave', () => {
+        cursorLabel.style.display = 'none';
+        document.body.classList.remove('cursor-hidden');
+        currentZone = null;
+      });
+
+      document.addEventListener('click', e => {
+        if (isReservedTarget(e.target)) return;
+        if (currentZone === 'right' && NEXT_HREF) window.location.href = NEXT_HREF;
+        else if (currentZone === 'left' && PREV_HREF) window.location.href = PREV_HREF;
+      });
+    })();
+  </script>
+</body>
+</html>

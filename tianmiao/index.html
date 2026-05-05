@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tianmiao</title>
+  <style>
+    @font-face {
+      font-family: 'Minion Pro';
+      src: url('../fonts/MinionPro-Regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      background: white;
+      font-family: 'Minion Pro', Palatino, serif;
+    }
+    body {
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px; left: 20px;
+      width: 60px; height: 60px;
+      font-size: 48px; line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      text-decoration: none;
+    }
+
+    .scroll-container {
+      width: 100%;
+      display: block;
+    }
+    .scroll-container img {
+      display: block;
+      width: 100vw;
+      height: auto;
+    }
+
+    .trace-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .trace-mini {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .info-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      font-size: 48px;
+      line-height: 60px;
+      text-align: center;
+      color: #5cfaa6;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+    .info-box {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      font-family: 'Minion Pro', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: black;
+      max-width: 400px;
+      z-index: 9999;
+      white-space: pre-wrap;
+    }
+    .info-btn:hover + .info-box,
+    .info-box:hover,
+    .info-box.open {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" href="../home/index.html">←</a>
+
+  <div class="scroll-container" id="scrollContainer"></div>
+
+  <div class="trace-overlay" id="traceOverlay"></div>
+
+  <div class="info-btn">&#9432;</div>
+  <div class="info-box">Lin Tianmiao is a contemporary Chinese installation artist and textile designer. She sometimes makes use of everyday objects.
+
+(top to bottom)
+Focus I C
+2006
+lithograph and screen print with thread additions
+
+Focus III A
+2007
+lithograph and screen print with embossed ink and embossing
+
+Focus XV A
+2006
+lithograph and screen print with embossing
+
+Focus 1
+2007
+lithograph on handmade paper, cotton thread</div>
+
+  <script>
+    (function () {
+      const TIANMIAO_IMAGES = [
+        'images/TM1.png',
+        'images/TM2.png',
+        'images/TM3.png',
+        'images/TM4.png',
+        'images/TM5.jpg',
+      ];
+
+      const container = document.getElementById('scrollContainer');
+
+      // Render 3 copies of the image set so we can loop seamlessly
+      for (let copy = 0; copy < 3; copy++) {
+        for (const src of TIANMIAO_IMAGES) {
+          const img = document.createElement('img');
+          img.src = src;
+          img.draggable = false;
+          container.appendChild(img);
+        }
+      }
+
+      // ---- infinite scroll: position in middle copy, teleport at boundaries ----
+      let setHeight = 0;
+      let teleporting = false;
+
+      function waitImagesLoaded() {
+        const imgs = container.querySelectorAll('img');
+        return Promise.all([...imgs].map(img =>
+          img.complete && img.naturalHeight
+            ? Promise.resolve()
+            : new Promise(resolve => { img.onload = resolve; img.onerror = resolve; })
+        ));
+      }
+
+      waitImagesLoaded().then(() => {
+        requestAnimationFrame(() => {
+          setHeight = container.scrollHeight / 3;
+          window.scrollTo(0, setHeight);
+        });
+      });
+
+      window.addEventListener('scroll', () => {
+        if (teleporting || setHeight === 0) return;
+        const s = window.scrollY;
+        if (s >= 2 * setHeight) {
+          teleporting = true;
+          window.scrollTo(0, s - setHeight);
+          requestAnimationFrame(() => { teleporting = false; });
+        } else if (s <= 0) {
+          teleporting = true;
+          window.scrollTo(0, s + setHeight);
+          requestAnimationFrame(() => { teleporting = false; });
+        }
+      }, { passive: true });
+
+      // recompute setHeight on resize (image widths -> heights change)
+      window.addEventListener('resize', () => {
+        const oldHeight = setHeight;
+        const ratio = oldHeight ? window.scrollY / oldHeight : 1;
+        setHeight = container.scrollHeight / 3;
+        if (oldHeight) window.scrollTo(0, setHeight * ratio);
+      });
+
+      // ---- click-and-drag trace ----
+      const MIN_DIST = 40;
+      const MINI_SIZE = 60;
+
+      const overlay = document.getElementById('traceOverlay');
+      let dragging = false;
+      let lastX = 0, lastY = 0;
+      let imgIdx = 0;
+
+      function emitTrace(x, y) {
+        const img = document.createElement('img');
+        img.className = 'trace-mini';
+        img.src = TIANMIAO_IMAGES[imgIdx];
+        imgIdx = (imgIdx + 1) % TIANMIAO_IMAGES.length;
+        img.style.left = (x - MINI_SIZE / 2) + 'px';
+        img.style.top = (y - MINI_SIZE / 2) + 'px';
+        img.style.width = MINI_SIZE + 'px';
+        img.style.transform = 'rotate(' + (Math.random() * 30 - 15) + 'deg)';
+        img.draggable = false;
+        overlay.appendChild(img);
+      }
+
+      function isReserved(t) {
+        return !!(t && (t.closest('.back-btn') || t.closest('.info-btn') || t.closest('.info-box')));
+      }
+
+      document.addEventListener('mousedown', e => {
+        if (isReserved(e.target)) return;
+        dragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        emitTrace(e.clientX, e.clientY);
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        if (dx * dx + dy * dy < MIN_DIST * MIN_DIST) return;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        emitTrace(e.clientX, e.clientY);
+      });
+
+      document.addEventListener('mouseup', () => { dragging = false; });
+      document.addEventListener('mouseleave', () => { dragging = false; });
+
+      document.addEventListener('dblclick', e => {
+        if (isReserved(e.target)) return;
+        while (overlay.firstChild) overlay.removeChild(overlay.firstChild);
+      });
+
+      // ---- info icon click-to-pin ----
+      const infoBtn = document.querySelector('.info-btn');
+      const infoBox = document.querySelector('.info-box');
+      if (infoBtn && infoBox) {
+        infoBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          infoBox.classList.toggle('open');
+        });
+        document.addEventListener('click', e => {
+          if (e.target.closest('.info-btn') || e.target.closest('.info-box')) return;
+          infoBox.classList.remove('open');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

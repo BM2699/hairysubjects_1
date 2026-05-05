@@ -20,150 +20,659 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+    }
+    html, body {
+      scroll-snap-type: y mandatory;
+    }
+    html { scroll-behavior: smooth; }
     body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: white;
+      background: #f5e9d8;  /* warm fallback while bg images load */
       cursor: default;
-    }
-
-    #quote {
-      position: absolute;
-      top: 66%;
-      left: 15%;
-      width: 33%;
-      padding: 30px;
       font-family: 'Minion Pro', serif;
-      font-size: 18px;
-      line-height: 1.6;
-      color: #5cfaa6;
-      cursor: pointer;
-      text-decoration: none;
     }
 
-    #quote .spanish {
-      font-style: italic;
+    /* ---- background slideshow (loops, crossfades) ---- */
+    .bg-slideshow {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background: #2a1f15;
     }
-
-    #quote .english {
-      margin-top: 12px;
-      padding-left: 40px;
-    }
-    #elastics {
+    .bg-slideshow img {
       position: absolute;
-      top: 80px;
-      right: 100px;
-      width: 400px;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1.6s ease-in-out;
+      pointer-events: none;
+      user-select: none;
+    }
+    .bg-slideshow img.active { opacity: 1; }
+
+    /* ---- bubble layer: creamy translucent panel covering all content ---- */
+    .bubble {
+      position: relative;
+      margin: 14px;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg,
+          rgba(255, 250, 240, 0.62) 0%,
+          rgba(255, 245, 230, 0.66) 50%,
+          rgba(255, 240, 222, 0.60) 100%);
+      backdrop-filter: blur(14px) saturate(1.05);
+      -webkit-backdrop-filter: blur(14px) saturate(1.05);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      box-shadow:
+        inset 0 0 80px rgba(255, 255, 255, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 6px 28px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      z-index: 1;
     }
 
-    #broom {
-      position: absolute;
-      top: 40%;
-      left: 40%;
-      width: 300px;
+    /* scroll-snap targets */
+    .page  { scroll-snap-align: start;  scroll-snap-stop: always; }
+    #thank { scroll-snap-align: center; scroll-snap-stop: always; }
+    .ty    { scroll-snap-align: start;  scroll-snap-stop: always; }
+
+    .page {
+      position: relative;
+      width: 100%;
+      height: 0;
+      padding-bottom: 179.166%; /* mockup aspect: 2752/1536 */
+      margin-bottom: -32vw;     /* tightens space between strand and .ty rows */
     }
 
-    .draggable {
+    .nav-asset,
+    .static {
       position: absolute;
-      cursor: grab;
       user-select: none;
       -webkit-user-select: none;
-      z-index: 9999;
     }
-
-    .draggable:active {
-      cursor: grabbing;
+    .nav-asset {
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, filter 0.2s ease;
     }
-
-    .draggable img {
+    .nav-asset:hover {
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22));
+    }
+    .nav-asset img,
+    .static img {
       display: block;
       width: 100%;
       height: auto;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    .static { pointer-events: none; }
+
+    /* ---- positions traced from the 1536×2752 mockup ---- */
+
+    /* "hairy subject" hair-script title */
+    #title {
+      left: 50%;
+      top: 6%;
+      width: 74%;
+      transform: translateX(-50%);
+      z-index: 4;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    #title:hover {
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22));
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    /* About-the-project modal opened by clicking the title */
+    .title-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 10005;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .title-modal.open { display: flex; }
+    .title-modal-content {
+      position: relative;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 40px 44px;
+      max-width: 640px;
+      max-height: 84vh;
+      overflow-y: auto;
+      font-family: 'Minion Pro', "Iowan Old Style", Palatino, serif;
+      font-size: 17px;
+      line-height: 1.65;
+      color: #1a1a1a;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25);
+    }
+    .title-modal-content p {
+      margin-bottom: 1.1em;
+    }
+    .title-modal-content p:last-child { margin-bottom: 0; }
+    .title-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      color: #5cfaa6;
+      padding: 4px 8px;
+    }
+
+    /* scissors → pair2 (top-left, blades up-left) */
+    #scissors {
+      left: 1%;
+      top: -3%;
+      width: 24%;
+      transform: rotate(135deg);
+      transform-origin: 50% 50%;
+      z-index: 6;
+    }
+    #scissors:hover { transform: rotate(135deg) scale(1.05); }
+
+    /* yellow elastics ring → pair3 */
+    #elastics {
+      left: 33%;
+      top: 0%;
+      width: 14%;
+      transform: rotate(12deg);
+      z-index: 7;
+    }
+    #elastics:hover { transform: rotate(12deg) scale(1.08); }
+
+    /* pillow → ppp (top-right) */
+    #pillow {
+      left: 68%;
+      top: 1%;
+      width: 27%;
+      transform: rotate(8deg);
+      z-index: 6;
+    }
+    #pillow:hover { transform: rotate(8deg) scale(1.05); }
+
+    /* broom → pair1 (right side, long diagonal) */
+    #broom {
+      left: 72%;
+      top: 7%;
+      width: 28%;
+      z-index: 5;
+    }
+    #broom:hover { transform: scale(1.05); }
+
+    /* thread → tianmiao (left side, below scissors) */
+    #thread {
+      left: 12.6%;
+      top: 16%;
+      width: 14.16%;
+      transform: rotate(-39.93deg);
+      transform-origin: 50% 50%;
+      z-index: 6;
+    }
+    #thread:hover { transform: rotate(-39.93deg) scale(1.06); }
+
+    /* hair strand S-curve (decorative, lower half) */
+    #strand {
+      left: 13%;
+      top: 22%;
+      width: 72%;
+      z-index: 1;
+    }
+
+    /* "people I want to thank" lettering inside strand */
+    #thank {
+      left: 24%;
+      top: 60%;
+      width: 46.2%;
+      z-index: 2;
+    }
+
+    /* ---- thanks section: 9 alternating image+text rows ---- */
+    .ty {
+      width: 100%;
+      padding: 10px 6% 120px 6%;
+    }
+    .ty-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6%;
+      padding: 40px 0;
+      min-height: 38vh;
+    }
+    .ty-row:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+    .ty-img-wrap {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .ty-img {
+      display: block;
+      max-width: 80%;
+      max-height: 60vh;
+      width: auto;
+      height: auto;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .ty-text {
+      flex: 1;
+      color: #5cfaa6;
+      font-family: 'Minion Pro', "Iowan Old Style", Palatino, serif;
+    }
+    .ty-title {
+      font-size: 38px;
+      font-weight: normal;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .ty-body {
+      font-size: 19px;
+      line-height: 1.6;
+    }
+    .ty-row.no-body .ty-title {
+      font-size: 44px;
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 700px) {
+      .ty-row, .ty-row:nth-child(even) {
+        flex-direction: column;
+        gap: 24px;
+      }
+      .ty-title { font-size: 28px; }
+      .ty-row.no-body .ty-title { font-size: 32px; }
+      .ty-body { font-size: 16px; }
+    }
+
+    /* ---- ASCII portrait trigger + image popup, bottom-right ---- */
+    .ascii-trigger {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 9999;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.18s ease;
+    }
+    .ascii-trigger:hover { transform: scale(1.04); }
+    .ascii-art {
+      font-family: monospace;
+      font-size: 4px;
+      line-height: 4px;
+      color: #5cfaa6;
+      margin: 0;
+      white-space: pre;
+    }
+    .ascii-popup {
+      display: none;
+      position: fixed;
+      bottom: 170px;
+      right: 16px;
+      background: white;
+      border: 1px solid #5cfaa6;
+      padding: 16px;
+      gap: 12px;
+      z-index: 10000;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.15);
+    }
+    .ascii-popup img,
+    .kit-item {
+      display: block;
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .kit-item:active { cursor: grabbing; }
+    .kit-item.kit-out {
+      position: fixed;
+      z-index: 10000;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+    }
+    .ascii-trigger:hover + .ascii-popup,
+    .ascii-popup:hover,
+    .ascii-popup.open {
+      display: flex;
     }
   </style>
 </head>
 <body>
+  <div class="bg-slideshow" id="bgSlideshow"></div>
 
-  <a href="../pair3/"><img id="elastics" src="assets/elastics.png" alt="elastics"></a>
+  <div class="bubble">
+  <div class="page">
+    <div class="static" id="title">
+      <img src="assets/hairysubject_newfront_transparentbg.png" alt="hairy subject">
+    </div>
 
-  <a href="../pair1/"><img id="broom" src="assets/broom.png" alt="broom"></a>
+    <a class="nav-asset" id="scissors" href="../pair2/index.html" aria-label="pair 2">
+      <img src="assets/scissors.png" alt="scissors">
+    </a>
 
-  <a id="quote" href="../pair2/">
-    <div class="spanish">Mira que si te quise, fué por el pelo, Ahora que estás pelona, ya no te quiero</div>
-    <div class="english">[Look, if I loved you, it was for your hair, Now that you're bald, I don't love you anymore]</div>
-  </a>
+    <a class="nav-asset" id="elastics" href="../pair3/index.html" aria-label="pair 3">
+      <img src="assets/elastics.png" alt="elastics">
+    </a>
+
+    <a class="nav-asset" id="pillow" href="../ppp/index.html" aria-label="ppp">
+      <img src="assets/pillow.png" alt="pillow">
+    </a>
+
+    <a class="nav-asset" id="broom" href="../pair1/index.html" aria-label="pair 1">
+      <img src="assets/broom.png" alt="broom">
+    </a>
+
+    <a class="nav-asset" id="thread" href="../tianmiao/index.html" aria-label="tianmiao">
+      <img src="assets/thread.png" alt="thread">
+    </a>
+
+    <div class="static" id="strand">
+      <img src="assets/strand1.png" alt="">
+    </div>
+
+    <div class="static" id="thank">
+      <img src="assets/ty_bg.png" alt="people I want to thank">
+    </div>
+  </div>
+
+  <section class="ty">
+    <div class="ty-row">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s1.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Mentors</h3>
+        <p class="ty-body">Tanika Williams, Pedro Pescal, Yeseul Song, Blair Simmons, Shindy Johnson, John Henry Thompson</p>
+      </div>
+    </div>
+
+    <div class="ty-row">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s2.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Play-Testers</h3>
+        <p class="ty-body">Finnley, Kayla, Sofia, Charles, Cathy, Devlon, Gia, Taegen, Sophie, Ana, Xiaoxu, Chris, June, Haoren</p>
+      </div>
+    </div>
+
+    <div class="ty-row">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s3.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Friends</h3>
+        <p class="ty-body">Jessie Zhai, Jin Han, Queenie Hsiao, Julia Kan, Jericho Ma, Jonathan Duan, Sao Otake, Jiyou Park, Rachel Moon, Sky Seo, Una Zhang, Tobi, Yizhen Shi</p>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s4.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">Theo + Web Art Class</h3>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s5.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">The Shop + Phil + Ian</h3>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s6.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Family</h3>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s7.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Cat Kewpie</h3>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s8.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">My Therapist</h3>
+      </div>
+    </div>
+
+    <div class="ty-row no-body">
+      <div class="ty-img-wrap"><img class="ty-img" src="assets/s9.png" alt=""></div>
+      <div class="ty-text">
+        <h3 class="ty-title">Myself.</h3>
+      </div>
+    </div>
+  </section>
+  </div><!-- /.bubble -->
+
+  <div class="title-modal" id="titleModal" role="dialog" aria-modal="true">
+    <div class="title-modal-content">
+      <button class="title-modal-close" id="titleModalClose" aria-label="close">&times;</button>
+      <p>Growing up, I seldom saw my mom at home due to her demanding work hours, but her shed hair could be found in almost every corner of our apartment. To make sense of her maternal absence, labor, and love, I developed an attachment to my mother&rsquo;s shed hair as a young child &mdash; her traces became witnesses of her absence, silently vocalizing her presence and labor.</p>
+      <p>The older I get, the more I&rsquo;ve realized I am a reflection of her. I inherited a head of jet black, pin straight hair, and I shed just like my mother.</p>
+      <p>Shed hair retains DNA significantly longer than other biological matter &mdash; particularly the mtDNA, the set of genes exclusively inherited from our mothers, and the many mothers before them. In other words, my shed hair is hers.</p>
+      <p>The poetic overlap between biology and personal memory prompted <em>Hairy Subject</em>, a series of research-based project surveying hair waste&rsquo;s material poetics as a metaphor of maternal lineage, selfhood, and female labor. Throughout this 4+ year of searching and making <em>Hairy Subject</em>, friends, families, mentors, and strangers have help me develop an extensive list of sources. They were also my main source of sustenance that encouraged me to continue this project. As a result, this web-zine-art-gallery-esque-thing is my gesture of gratitude for all these people.</p>
+      <p>I will continue to move through the world with care, curiosity, and vulnerability.</p>
+      <p>&lt;3</p>
+    </div>
+  </div>
+
+  <div class="ascii-trigger" id="asciiTrigger" aria-label="kit">
+<pre class="ascii-art">⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣿⣿⣿⡿⣿⢻⣏⠷⡜⣎⠳⡜⡸⢍⠟⡻⢿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣾⢯⡿⣵⢯⡷⢫⢷⡹⣌⢳⡱⢍⠎⡜⡡⠣⢌⡙⠛⠿⣿
+⠉⡉⠫⠑⢮⡱⢧⡞⣧⢟⡾⣟⣿⣭⣽⣩⢷⡽⣶⣿⣾⣿⣿⣿⣿⣿⣿⣿⣯⣟⡿⣽⣳⢯⡞⣽⢲⡝⣎⠳⡜⡸⡘⠴⢡⠓⠐⠈⠁⠀⠀
+⠀⠄⠡⠈⡄⠰⠉⠜⠓⠫⣟⣹⠪⠝⠩⠏⠓⠉⠳⢟⣿⢿⣷⣻⣿⣽⣾⢯⡷⣯⢟⡷⡽⣞⣝⣎⣳⠼⠬⠓⡉⠁⠉⠀⠀⠀⠀⠀⠀⠀⠀
+⠈⡄⠑⡐⡈⠆⡑⠌⣂⠡⢿⣿⠇⠒⡠⢄⡀⡀⡀⠀⠈⠛⢾⡽⣞⡿⣞⣯⡿⣽⠯⠞⠗⢋⠘⠈⠀⠠⠀⠄⠀⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠐⡌⢢⠁⡜⢠⠑⡌⠐⠂⡆⡄⢣⡌⠐⢠⠐⠀⠁⠁⠒⠐⢠⡌⣿⠛⠋⠉⠘⠀⠈⠀⢠⠀⠀⠂⠐⠀⠀⠂⠈⢠⠐⠀⠀⠀⠀⠀⠀⠀⢠
+⡁⢒⡌⢆⠡⢍⠢⣁⠣⠜⡠⠑⡄⢂⠅⡂⠄⡁⠂⠁⠀⢀⠀⠀⡹⠀⠀⠀⠀⠀⢀⠈⠀⡀⠂⡐⠀⠄⠡⠀⢂⠀⠄⠐⠀⢀⠀⠀⠀⠀⢸
+⡘⢤⡘⢦⣉⢆⡱⢄⠣⢌⡡⢣⠘⡄⢒⡐⠢⢄⠡⠈⠀⠀⠀⢀⠱⠂⠀⠀⠀⠂⠀⡀⢁⠠⠐⠀⠌⢀⠂⡐⠀⠄⠂⢀⠂⠀⠀⢀⠀⠀⢾
+⡘⢦⡱⢦⡙⢦⡓⣎⡞⣲⢔⣣⢚⡔⢣⠌⡱⠈⡄⢁⠂⠀⠄⠀⡹⠀⠀⠀⢁⠠⠁⠠⢀⠐⡈⠐⡈⠄⢂⠐⡈⠐⡈⢀⠀⠄⠈⠀⠀⠀⣿
+⡙⢦⡓⢧⣝⣣⢟⡲⣝⢶⡩⡖⡭⢎⡱⢊⠥⢃⠜⡀⢂⠡⠀⠂⡱⠀⢀⠈⢀⠠⢀⠡⢀⢂⠐⡡⠐⡈⢄⠒⠠⢁⠐⡀⠂⢀⠐⠀⠀⠀⣿
+⣏⠶⣹⢳⢮⣳⢯⣟⢮⡷⣹⢳⡭⢇⡳⣉⠞⡌⢢⠁⠆⡐⠀⡁⠴⠁⠀⡀⠂⠄⢂⠰⠀⡌⠤⠑⡌⠰⡈⢄⠃⠄⡂⠄⢁⠠⠀⠀⠀⠀⣿
+⣏⢞⡱⣯⢯⣟⡾⣽⣻⡼⣯⡳⣝⢮⡕⣣⠚⡜⠤⡉⠔⠠⠁⠄⡸⠀⠐⠀⠌⡐⠀⢆⠱⢈⠔⡡⢌⠱⡈⠔⡨⠐⠄⡈⠄⠠⠀⠁⠀⠀⣿
+⣏⢮⡳⣽⣻⣾⣿⣟⣷⣿⣳⡟⣽⡺⡜⣥⢛⡘⢆⠱⡈⠆⡁⠂⠥⠁⠂⢁⠂⢄⡉⠰⡈⢆⠣⡜⣌⢒⡉⢆⠡⡁⠎⡐⠈⠄⠐⠀⠈⠀⣿
+⣯⢶⣹⢷⣿⣿⣿⣿⣿⣾⣷⣻⢧⡟⣽⢢⢏⡜⠌⢆⡑⠰⢀⠡⢌⠡⠐⠠⠈⡄⠌⡱⠘⣌⢱⡘⣤⠣⡜⡌⢆⠱⢀⠂⠡⢈⠀⠂⠁⠀⣿
+⡷⣫⣞⣿⣿⣿⣿⣿⣿⣿⣿⣽⣻⡼⢧⡏⢮⡘⡍⢢⠘⠄⢂⠐⢨⠐⠠⢁⠂⠜⡠⢅⠫⡔⡣⡕⢦⡓⡜⡸⡈⢆⠡⢊⠐⡀⠠⠀⠀⠀⣿
+⣿⡱⣯⣿⣿⣿⣿⣿⣿⣿⣟⣷⢯⣽⢣⠟⣦⠓⡜⡠⢃⠘⠠⢈⠢⢁⠂⠄⡘⠤⡑⣌⠳⣸⠱⣭⢣⡝⢲⢡⠱⣈⠒⠄⢂⠐⠀⠀⠀⢠⣿
+⡷⣙⡳⢿⣿⣿⣿⣿⣿⣿⣿⣯⣟⡮⣏⡻⢤⡋⠴⡁⠎⢠⠁⠂⠌⠄⡈⠐⠤⢑⡰⢌⢣⡕⣫⢞⣧⡙⢧⢊⡱⢠⠉⡐⢀⠂⠀⠀⠀⢸⣿
+⡷⣡⠫⡝⡺⣽⢻⡿⣿⢿⣯⢷⣻⡼⣣⡝⣣⠜⡣⠜⣈⠂⠌⡐⢈⠂⠄⡉⡐⠢⢔⢪⠱⢎⡳⢏⡶⣙⠎⡆⢆⡁⢂⡐⠀⡀⠀⠀⠀⢸⣿
+⣿⣴⣳⢜⡱⢎⢧⡛⣭⣛⢾⣫⢷⡹⡕⢮⡱⢊⡱⢈⠄⢃⠐⡀⠢⢈⠐⠠⠌⡱⢈⠦⡙⣎⡝⢮⡱⣍⠚⣌⠢⢘⠠⠐⢀⠀⠀⠀⢀⣨⣿
+⣿⣿⣿⣿⣿⡼⢤⡻⣄⠻⣜⡣⢟⡼⣛⠧⡘⢇⡄⠇⠸⡀⠄⠠⠀⠄⡘⠠⠄⢣⠘⡤⢣⠜⡸⢇⣣⠘⢧⠀⠇⠄⠠⠀⠄⣀⣸⣼⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣷⣶⣍⣓⠧⣙⢧⣚⡱⢊⡕⢊⠰⡈⠥⠐⡈⠄⢁⠂⠄⠱⢈⠆⣑⠢⣃⠞⣡⢋⠴⣉⠆⣉⣒⣬⣵⣾⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣥⣒⢍⠲⣌⠡⢆⠡⢂⠁⡀⠐⠀⠂⠈⢄⠃⡌⢄⠣⣘⠸⢄⣋⣴⣬⣾⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣬⣒⡌⡐⠂⠄⡀⠂⠁⠌⡐⢂⠘⠠⣌⢲⣤⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣷⣦⣤⣀⡀⣠⣐⣦⣽⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿</pre>
+  </div>
+  <div class="ascii-popup" id="asciiPopup">
+    <img class="kit-item" data-sound="comb.mp3"      src="assets/comb.png"      alt="comb"      draggable="false">
+    <img class="kit-item" data-sound="hairdryer.mp3" src="assets/hairdryer.png" alt="hairdryer" draggable="false">
+    <img class="kit-item" data-sound="cream.mp3"     src="assets/hairmask.png"  alt="hairmask"  draggable="false">
+  </div>
 
   <script>
-    const pieces = [
-      { src: 'assets/Image8.png',  w: 620, x: -90,  y: -70,  r: -7 },
-      { src: 'assets/Image9.png',  w: 380, x: 400,  y: -30,  r: 12 },
-      { src: 'assets/Image10.png', w: 550, x: 700,  y: -90,  r: -2 },
-      { src: 'assets/Image11.png', w: 420, x: 1150, y: -20,  r: 8 },
-      { src: 'assets/image13.png', w: 350, x: 1450, y: 30,   r: -11 },
-      { src: 'assets/Image12.png', w: 580, x: 30,   y: 180,  r: 9 },
-      { src: 'assets/Image8.png',  w: 330, x: 520,  y: 150,  r: -15 },
-      { src: 'assets/Image9.png',  w: 600, x: 780,  y: 130,  r: 4 },
-      { src: 'assets/Image11.png', w: 400, x: 1280, y: 200,  r: -8 },
-      { src: 'assets/Image10.png', w: 550, x: -60,  y: 400,  r: -5 },
-      { src: 'assets/image13.png', w: 650, x: 350,  y: 350,  r: 6 },
-      { src: 'assets/Image12.png', w: 370, x: 880,  y: 420,  r: -13 },
-      { src: 'assets/Image8.png',  w: 520, x: 1150, y: 370,  r: 10 },
-      { src: 'assets/Image9.png',  w: 430, x: 1500, y: 350,  r: -4 },
-      { src: 'assets/Image11.png', w: 580, x: -40,  y: 620,  r: 7 },
-      { src: 'assets/Image10.png', w: 350, x: 450,  y: 660,  r: -12 },
-      { src: 'assets/Image12.png', w: 600, x: 700,  y: 600,  r: 3 },
-      { src: 'assets/image13.png', w: 420, x: 1180, y: 640,  r: -9 },
-      { src: 'assets/Image8.png',  w: 550, x: 1450, y: 590,  r: 6 },
-      { src: 'assets/Image9.png',  w: 480, x: 100,  y: 830,  r: -8 },
-      { src: 'assets/Image11.png', w: 620, x: 500,  y: 800,  r: 5 },
-      { src: 'assets/Image10.png', w: 400, x: 1000, y: 850,  r: -14 },
-      { src: 'assets/Image12.png', w: 550, x: 1320, y: 810,  r: 7 },
-      // image14 - single instance
-      { src: 'assets/image14.png', w: 500, x: 600,  y: 400,  r: 0 },
-    ];
+    (function () {
+      // ---- background slideshow: looped crossfade ----
+      const BG_IMAGES = [
+        'bg/a.png','bg/b.png','bg/c.png','bg/d.png','bg/e.png',
+        'bg/f.png','bg/g.png','bg/h.png','bg/i.png','bg/j.png',
+        'bg/HairPuzzle-BM-10.jpg',
+        'bg/IMG_8537.jpg',
+        'bg/IMG_9400.JPG',
+        'bg/IMG_9410.JPG',
+        'bg/P5260230.JPEG'
+      ];
+      const BG_INTERVAL_MS = 4500;
+      const bgEl = document.getElementById('bgSlideshow');
+      if (bgEl) {
+        BG_IMAGES.forEach(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          bgEl.appendChild(img);
+        });
+        const bgImgs = bgEl.querySelectorAll('img');
+        if (bgImgs.length) {
+          let bgIdx = 0;
+          bgImgs[0].classList.add('active');
+          setInterval(() => {
+            bgImgs[bgIdx].classList.remove('active');
+            bgIdx = (bgIdx + 1) % bgImgs.length;
+            bgImgs[bgIdx].classList.add('active');
+          }, BG_INTERVAL_MS);
+        }
+      }
 
-    pieces.forEach(p => {
-      const div = document.createElement('div');
-      div.className = 'draggable';
-      const img = document.createElement('img');
-      img.src = p.src;
-      img.draggable = false;
-      div.appendChild(img);
-      div.style.width = p.w + 'px';
-      div.style.left = p.x + 'px';
-      div.style.top = p.y + 'px';
-      div.style.transform = 'rotate(' + p.r + 'deg)';
-      document.body.appendChild(div);
-    });
+      const tyImgs = document.querySelectorAll('.ty-img');
+      let ticking = false;
+      function update() {
+        const scrollY = window.scrollY;
+        tyImgs.forEach((img, i) => {
+          const angle = scrollY * 0.18 + i * 30;
+          img.style.transform = 'rotate(' + angle + 'deg)';
+        });
+        ticking = false;
+      }
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+      update();
 
-    // drag logic
-    let dragEl = null;
-    let offsetX = 0;
-    let offsetY = 0;
-    let topZ = 10000;
+      // Title click → open about-the-project modal
+      const titleEl = document.getElementById('title');
+      const titleModal = document.getElementById('titleModal');
+      const titleModalClose = document.getElementById('titleModalClose');
+      if (titleEl && titleModal) {
+        titleEl.addEventListener('click', e => {
+          e.stopPropagation();
+          titleModal.classList.add('open');
+        });
+        titleModalClose.addEventListener('click', () => titleModal.classList.remove('open'));
+        titleModal.addEventListener('click', e => {
+          if (e.target === titleModal) titleModal.classList.remove('open');
+        });
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') titleModal.classList.remove('open');
+        });
+      }
 
-    document.addEventListener('pointerdown', (e) => {
-      const el = e.target.closest('.draggable');
-      if (!el) return;
-      dragEl = el;
-      const rect = el.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-      dragEl.style.zIndex = ++topZ;
-      dragEl.setPointerCapture(e.pointerId);
-    });
+      // ASCII trigger click-to-pin
+      const trigger = document.getElementById('asciiTrigger');
+      const popup = document.getElementById('asciiPopup');
+      if (trigger && popup) {
+        trigger.addEventListener('click', e => {
+          e.stopPropagation();
+          popup.classList.toggle('open');
+        });
+        document.addEventListener('click', e => {
+          if (e.target.closest('.ascii-trigger') || e.target.closest('.ascii-popup') || e.target.classList.contains('kit-item')) return;
+          popup.classList.remove('open');
+        });
+      }
 
-    document.addEventListener('pointermove', (e) => {
-      if (!dragEl) return;
-      dragEl.style.left = (e.clientX - offsetX) + 'px';
-      dragEl.style.top = (e.clientY - offsetY) + 'px';
-    });
+      // Kit items: drag out of popup → sound loops; drag back into popup → return + stop sound
+      const KIT_VOLUME = 0.18;
 
-    document.addEventListener('pointerup', () => {
-      dragEl = null;
-    });
+      function returnItem(item) {
+        if (item._audio) {
+          item._audio.pause();
+          item._audio.currentTime = 0;
+          item._audio = null;
+        }
+        item.classList.remove('kit-out');
+        item.style.position = '';
+        item.style.left = '';
+        item.style.top = '';
+        popup.appendChild(item);
+      }
+
+      function isOverPopup(x, y) {
+        const r = popup.getBoundingClientRect();
+        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+      }
+
+      document.querySelectorAll('.kit-item').forEach(item => {
+        let dragging = false;
+        let offsetX = 0, offsetY = 0;
+
+        item.addEventListener('pointerdown', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragging = true;
+
+          if (!item.classList.contains('kit-out')) {
+            // first-time take-out: detach to body, start sound
+            const rect = item.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            document.body.appendChild(item);
+            item.classList.add('kit-out');
+            item.style.left = (e.clientX - offsetX) + 'px';
+            item.style.top  = (e.clientY - offsetY) + 'px';
+
+            const audio = new Audio('assets/' + item.dataset.sound);
+            audio.loop = true;
+            audio.volume = KIT_VOLUME;
+            audio.play().catch(err => console.warn('audio play blocked:', err));
+            item._audio = audio;
+          } else {
+            // re-grab an item that is already on the page
+            const rect = item.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+          }
+
+          // make popup visible as drop zone during drag
+          popup.classList.add('open');
+          try { item.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+
+        item.addEventListener('pointermove', e => {
+          if (!dragging) return;
+          item.style.left = (e.clientX - offsetX) + 'px';
+          item.style.top  = (e.clientY - offsetY) + 'px';
+        });
+
+        const stopDrag = e => {
+          dragging = false;
+          try { item.releasePointerCapture(e.pointerId); } catch (_) {}
+
+          // dropped on popup → return to box
+          if (item.classList.contains('kit-out') && isOverPopup(e.clientX, e.clientY)) {
+            returnItem(item);
+          }
+        };
+        item.addEventListener('pointerup', stopDrag);
+        item.addEventListener('pointercancel', stopDrag);
+
+        // double-click also returns item to box
+        item.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          if (item.classList.contains('kit-out')) returnItem(item);
+        });
+      });
+    })();
   </script>
-
 </body>
 </html>
